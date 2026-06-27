@@ -59,7 +59,7 @@ def create_tables():
         technician TEXT NOT NULL,
         task_number TEXT UNIQUE NOT NULL,
         subscription_number TEXT NOT NULL,
-        status TEXT NOT NULL,
+        task_type TEXT NOT NULL,
         notes TEXT,
         latitude TEXT,
         longitude TEXT,

@@ -82,21 +82,20 @@ if search:
 st.subheader("📋 جميع المهام")
 
 st.dataframe(
-    df[
-        [
-            "id",
-            "technician",
-            "task_number",
-            "subscription_number",
-            "status",
-            "notes",
-            "created_at"
-        ]
-    ],
-    use_container_width=True,
-    hide_index=True
+    df = pd.DataFrame(
+    tasks,
+    columns=[
+        "id",
+        "technician",
+        "task_number",
+        "subscription_number",
+        "task_type",
+        "notes",
+        "latitude",
+        "longitude",
+        "created_at"
+    ]
 )
-
 st.divider()
 
 # ======================================
@@ -134,7 +133,7 @@ new_status = st.selectbox(
         "مؤجلة",
         "العميل غير موجود",
         "يحتاج مراجعة"
-    ].index(selected_task["status"])
+    ].index(selected_task["task_type"])
 )
 
 new_notes = st.text_area(
