@@ -1,4 +1,4 @@
-```
+
 import sqlite3
 import bcrypt
 
@@ -357,4 +357,4 @@ def change_password(user_id, new_password):
 
     conn.commit()
     conn.close()
-```
+
