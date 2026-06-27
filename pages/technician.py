@@ -58,7 +58,7 @@ def create_tables():
         technician TEXT NOT NULL,
         task_number TEXT UNIQUE NOT NULL,
         subscription_number TEXT NOT NULL,
-        status TEXT NOT NULL,
+        task_type TEXT NOT NULL,
         notes TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
@@ -144,7 +144,7 @@ def add_task(
         technician,
         task_number,
         subscription_number,
-        status,
+        task_type,
         notes):
 
     conn = get_connection()
@@ -156,7 +156,7 @@ def add_task(
         technician,
         task_number,
         subscription_number,
-        status,
+        task_type,
         notes
     )
 
@@ -166,7 +166,7 @@ def add_task(
         technician,
         task_number,
         subscription_number,
-        status,
+        task_type,
         notes
 
     ))
@@ -244,7 +244,7 @@ def delete_task(task_id):
 def update_task(
         task_id,
         subscription_number,
-        status,
+        task_type,
         notes):
 
     conn = get_connection()
@@ -255,13 +255,13 @@ def update_task(
 
     SET
         subscription_number = ?,
-        status = ?,
+        task_type = ?,
         notes = ?
 
     WHERE id = ?
     """, (
         subscription_number,
-        status,
+        task_type,
         notes,
         task_id
     ))
@@ -357,4 +357,3 @@ def change_password(user_id, new_password):
 
     conn.commit()
     conn.close()
-
