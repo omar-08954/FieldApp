@@ -1,322 +1,182 @@
 import sqlite3
-import bcrypt
 
 DB_NAME = "fieldapp.db"
 
+
+# الاتصال بقاعدة البيانات
 def get_connection():
-conn = sqlite3.connect(DB_NAME)
-conn.row_factory = sqlite3.Row
-return conn
+    conn = sqlite3.connect(DB_NAME)
+    conn.row_factory = sqlite3.Row
+    return conn
 
-# =========================
 
-# Password Functions
-
-# =========================
-
-def hash_password(password):
-return bcrypt.hashpw(
-password.encode("utf-8"),
-bcrypt.gensalt()
-).decode("utf-8")
-
-def verify_password(password, hashed_password):
-return bcrypt.checkpw(
-password.encode("utf-8"),
-hashed_password.encode("utf-8")
-)
-
-# =========================
-
-# Create Tables
-
-# =========================
-
+# إنشاء الجداول
 def create_tables():
+    conn = get_connection()
+    c = conn.cursor()
 
-```
-conn = get_connection()
-cursor = conn.cursor()
+    # جدول المستخدمين
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT UNIQUE NOT NULL,
+            password TEXT NOT NULL,
+            fullname TEXT NOT NULL,
+            role TEXT NOT NULL
+        )
+    """)
 
-cursor.execute("""
-CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    username TEXT UNIQUE NOT NULL,
-    password TEXT NOT NULL,
-    fullname TEXT NOT NULL,
-    role TEXT NOT NULL
-)
-""")
+    # جدول المهام
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS tasks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            technician TEXT NOT NULL,
+            task_number TEXT UNIQUE NOT NULL,
+            subscription_number TEXT NOT NULL,
+            status TEXT NOT NULL,
+            notes TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
 
-cursor.execute("""
-CREATE TABLE IF NOT EXISTS tasks (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    technician TEXT NOT NULL,
-    task_number TEXT UNIQUE NOT NULL,
-    subscription_number TEXT NOT NULL,
-    task_type TEXT NOT NULL,
-    notes TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-)
-""")
+    conn.commit()
+    conn.close()
 
-conn.commit()
-conn.close()
-```
 
-# =========================
-
-# Default Users
-
-# =========================
-
+# إنشاء المستخدمين الافتراضيين
 def create_default_users():
+    conn = get_connection()
+    c = conn.cursor()
 
-```
-conn = get_connection()
-cursor = conn.cursor()
+    users = [
+        ("admin", "1234", "أحمد شاهين", "admin"),
+        ("hani", "1234", "هاني صلاح", "technician"),
+        ("arslan", "1234", "أرسلان", "technician"),
+        ("omar", "1234", "عمر", "technician"),
+        ("borhan", "1234", "برهان", "technician"),
+        ("qasim", "1234", "قاسم", "technician")
+    ]
 
-users = [
-    ("admin", hash_password("1234"), "أحمد شاهين", "admin"),
-    ("hani", hash_password("1111"), "هاني صلاح", "technician"),
-    ("arslan", hash_password("1111"), "أرسلان", "technician"),
-    ("omar", hash_password("1111"), "عمر", "technician"),
-    ("borhan", hash_password("1111"), "برهان", "technician"),
-    ("qasim", hash_password("1111"), "قاسم", "technician")
-]
+    for user in users:
+        c.execute("""
+            INSERT OR IGNORE INTO users
+            (username, password, fullname, role)
+            VALUES (?, ?, ?, ?)
+        """, user)
 
-for user in users:
-    cursor.execute("""
-    INSERT OR IGNORE INTO users
-    (username, password, fullname, role)
-    VALUES (?, ?, ?, ?)
-    """, user)
+    conn.commit()
+    conn.close()
 
-conn.commit()
-conn.close()
-```
 
-# =========================
-
-# Login
-
-# =========================
-
+# تسجيل الدخول
 def login_user(username, password):
+    conn = get_connection()
+    c = conn.cursor()
 
-```
-conn = get_connection()
-cursor = conn.cursor()
+    c.execute("""
+        SELECT *
+        FROM users
+        WHERE username = ? AND password = ?
+    """, (username, password))
 
-cursor.execute(
-    "SELECT * FROM users WHERE username = ?",
-    (username,)
-)
+    user = c.fetchone()
 
-user = cursor.fetchone()
+    conn.close()
 
-conn.close()
-
-if user and verify_password(password, user["password"]):
     return user
 
-return None
-```
 
-# =========================
+# إضافة مهمة جديدة
+def add_task(technician, task_number,
+             subscription_number, status, notes):
 
-# Tasks
+    conn = get_connection()
+    c = conn.cursor()
 
-# =========================
+    c.execute("""
+        INSERT INTO tasks
+        (technician, task_number,
+         subscription_number, status, notes)
+        VALUES (?, ?, ?, ?, ?)
+    """, (
+        technician,
+        task_number,
+        subscription_number,
+        status,
+        notes
+    ))
 
-def add_task(
-technician,
-task_number,
-subscription_number,
-task_type,
-notes):
+    conn.commit()
+    conn.close()
 
-```
-conn = get_connection()
-cursor = conn.cursor()
 
-cursor.execute("""
-INSERT INTO tasks
-(technician, task_number, subscription_number, task_type, notes)
-VALUES (?, ?, ?, ?, ?)
-""", (
-    technician,
-    task_number,
-    subscription_number,
-    task_type,
-    notes
-))
-
-conn.commit()
-conn.close()
-```
-
-def get_all_tasks():
-
-```
-conn = get_connection()
-cursor = conn.cursor()
-
-cursor.execute("""
-SELECT *
-FROM tasks
-ORDER BY id DESC
-""")
-
-tasks = cursor.fetchall()
-
-conn.close()
-
-return tasks
-```
-
+# التحقق من وجود المهمة
 def task_exists(task_number):
+    conn = get_connection()
+    c = conn.cursor()
 
-```
-conn = get_connection()
-cursor = conn.cursor()
+    c.execute(
+        "SELECT id FROM tasks WHERE task_number = ?",
+        (task_number,)
+    )
 
-cursor.execute(
-    "SELECT id FROM tasks WHERE task_number = ?",
-    (task_number,)
-)
+    exists = c.fetchone() is not None
 
-task = cursor.fetchone()
+    conn.close()
 
-conn.close()
+    return exists
 
-return task is not None
-```
 
-def delete_task(task_id):
+# جلب جميع المهام
+def get_all_tasks():
+    conn = get_connection()
+    c = conn.cursor()
 
-```
-conn = get_connection()
-cursor = conn.cursor()
+    c.execute("""
+        SELECT *
+        FROM tasks
+        ORDER BY id DESC
+    """)
 
-cursor.execute(
-    "DELETE FROM tasks WHERE id = ?",
-    (task_id,)
-)
+    tasks = c.fetchall()
 
-conn.commit()
-conn.close()
-```
+    conn.close()
 
-def update_task(
-task_id,
-subscription_number,
-task_type,
-notes):
+    return tasks
 
-```
-conn = get_connection()
-cursor = conn.cursor()
 
-cursor.execute("""
-UPDATE tasks
-SET subscription_number = ?,
-    task_type = ?,
-    notes = ?
-WHERE id = ?
-""", (
-    subscription_number,
-    task_type,
-    notes,
-    task_id
-))
-
-conn.commit()
-conn.close()
-```
-
-# =========================
-
-# Users
-
-# =========================
-
+# جلب جميع المستخدمين
 def get_all_users():
+    conn = get_connection()
+    c = conn.cursor()
 
-```
-conn = get_connection()
-cursor = conn.cursor()
+    c.execute("""
+        SELECT id,
+               username,
+               fullname,
+               role
+        FROM users
+        ORDER BY fullname
+    """)
 
-cursor.execute("""
-SELECT id, username, fullname, role
-FROM users
-ORDER BY fullname
-""")
+    users = c.fetchall()
 
-users = cursor.fetchall()
+    conn.close()
 
-conn.close()
+    return users
 
-return users
-```
 
-def add_user(username, password, fullname, role):
+# تغيير كلمة المرور
+def change_password(username, new_password):
+    conn = get_connection()
+    c = conn.cursor()
 
-```
-conn = get_connection()
-cursor = conn.cursor()
+    c.execute("""
+        UPDATE users
+        SET password = ?
+        WHERE username = ?
+    """, (new_password, username))
 
-cursor.execute("""
-INSERT INTO users
-(username, password, fullname, role)
-VALUES (?, ?, ?, ?)
-""", (
-    username,
-    hash_password(password),
-    fullname,
-    role
-))
-
-conn.commit()
-conn.close()
-```
-
-def delete_user(user_id):
-
-```
-conn = get_connection()
-cursor = conn.cursor()
-
-cursor.execute(
-    "DELETE FROM users WHERE id = ?",
-    (user_id,)
-)
-
-conn.commit()
-conn.close()
-```
-
-# =========================
-
-# Change Password
-
-# =========================
-
-def change_password(user_id, new_password):
-
-```
-conn = get_connection()
-cursor = conn.cursor()
-
-cursor.execute("""
-UPDATE users
-SET password = ?
-WHERE id = ?
-""", (
-    hash_password(new_password),
-    user_id
-))
-
-conn.commit()
-conn.close()
-```
+    conn.commit()
+    conn.close()
+    
