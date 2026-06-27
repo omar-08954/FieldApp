@@ -148,9 +148,8 @@ def add_task(
         task_number,
         subscription_number,
         status,
-        notes,
-        latitude="",
-        longitude=""):
+        notes):
+
 
     conn = get_connection()
     cursor = conn.cursor()
@@ -162,9 +161,7 @@ def add_task(
         task_number,
         subscription_number,
         status,
-        notes,
-        latitude,
-        longitude
+        notes
     )
 
     VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -174,11 +171,8 @@ def add_task(
         task_number,
         subscription_number,
         status,
-        notes,
-        latitude,
-        longitude
-
-    ))
+        notes
+    )
 
     conn.commit()
     conn.close()

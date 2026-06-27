@@ -46,13 +46,13 @@ notes = st.selectbox(
     [
         "تم الفحص",
         "عائق",
-        "مازال"
+        "مزال"
     ]
 )
 
-latitude = st.text_input("Latitude")
 
-longitude = st.text_input("Longitude")
+
+
 
 if st.button(
         "💾 حفظ المهمة",
@@ -75,11 +75,8 @@ if st.button(
             subscription_number,
             task_type,
             notes,
-            latitude,
-            longitude
-        )
+          )
 
         st.success("تم حفظ المهمة بنجاح")
 
         st.balloons()
-        
