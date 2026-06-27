@@ -52,20 +52,18 @@ def create_tables():
     )
     """)
 
-    # جدول المهام
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS tasks (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        technician TEXT NOT NULL,
-        task_number TEXT UNIQUE NOT NULL,
-        subscription_number TEXT NOT NULL,
-        task_type TEXT NOT NULL,
-        notes TEXT,
-        latitude TEXT,
-        longitude TEXT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )
-    """)
+    ```sql
+CREATE TABLE IF NOT EXISTS tasks (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    technician TEXT NOT NULL,
+    task_number TEXT UNIQUE NOT NULL,
+    subscription_number TEXT NOT NULL,
+    task_type TEXT NOT NULL,
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)
+```
+
 
     conn.commit()
     conn.close()
@@ -143,16 +141,42 @@ def login_user(username, password):
 # إدارة المهام
 # ==========================================
 
+```python
 def add_task(
         technician,
         task_number,
         subscription_number,
-        status,
+        task_type,
         notes):
-
 
     conn = get_connection()
     cursor = conn.cursor()
+
+    cursor.execute("""
+    INSERT INTO tasks
+    (
+        technician,
+        task_number,
+        subscription_number,
+        task_type,
+        notes
+    )
+
+    VALUES (?, ?, ?, ?, ?)
+    """, (
+
+        technician,
+        task_number,
+        subscription_number,
+        task_type,
+        notes
+
+    ))
+
+    conn.commit()
+    conn.close()
+```
+
 
     cursor.execute("""
     INSERT INTO tasks

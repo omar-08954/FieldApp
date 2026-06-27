@@ -1,3 +1,4 @@
+```python
 import streamlit as st
 
 from database.database import (
@@ -14,7 +15,7 @@ if not st.session_state.get("logged_in", False):
     st.stop()
 
 # ======================================
-# العنوان
+# عنوان الصفحة
 # ======================================
 
 st.title("👷 صفحة الفني")
@@ -50,10 +51,6 @@ notes = st.selectbox(
     ]
 )
 
-
-
-
-
 if st.button(
         "💾 حفظ المهمة",
         use_container_width=True):
@@ -74,9 +71,10 @@ if st.button(
             task_number,
             subscription_number,
             task_type,
-            notes,
-          )
+            notes
+        )
 
-        st.success("تم حفظ المهمة بنجاح")
+        st.success("✅ تم حفظ المهمة بنجاح")
 
         st.balloons()
+```
